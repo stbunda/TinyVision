@@ -49,6 +49,7 @@ class BaseDataset(L.LightningDataModule):
         self.test_kwargs = {}
 
         self.input_tensor = None
+        self.task = None
         self.classes = None
         self.subset = subset
         self.prepare_data()
@@ -153,7 +154,9 @@ class BaseDataset(L.LightningDataModule):
         return copied
 
 class SweepData(BaseDataset):
-    def __init__(self, set: str='D1', imsize: int = 128, data_dir: str = './', train_transforms=None, test_transforms=None, **kwargs):
+    def __init__(self, set: str='D1', imsize: int = 128, data_dir: str = './', train_transforms=None, test_transforms=None, **kwargs):        
+        self.task = 'multiclass'
+
         train_transform_list = [
            transforms.Grayscale(),
            transforms.Resize((imsize, imsize)),
@@ -185,6 +188,8 @@ class SweepData(BaseDataset):
 # Specific dataset classes
 class CIFAR10(BaseDataset):
     def __init__(self, data_dir: str = './', train_transforms=None, test_transforms=None, **kwargs):
+        self.task = 'multiclass'
+
         train_transform_list = [
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
@@ -216,6 +221,8 @@ class CIFAR10(BaseDataset):
 
 class CIFAR100(BaseDataset):
     def __init__(self, data_dir: str = './', train_transforms=None, test_transforms=None, **kwargs):
+        self.task = 'multiclass'
+
         train_transforms = [
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
@@ -247,6 +254,8 @@ class CIFAR100(BaseDataset):
 
 class MNIST(BaseDataset):
     def __init__(self, data_dir: str = './', train_transforms=None, test_transforms=None, **kwargs):
+        self.task = 'multiclass'
+
         train_transforms = [
             transforms.ToTensor(),
             transforms.Normalize([0.1307], [0.3081])
@@ -273,6 +282,8 @@ class MNIST(BaseDataset):
 
 class SVHN(BaseDataset):
     def __init__(self, data_dir: str = './', train_transforms=None, test_transforms=None, **kwargs):
+        self.task = 'multiclass'
+
         train_transforms = [
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
@@ -302,6 +313,8 @@ class SVHN(BaseDataset):
 
 class ImageNet(BaseDataset):
     def __init__(self, data_dir: str = './', train_transforms=None, test_transforms=None, **kwargs):
+        self.task = 'multiclass'
+
         train_transforms = [
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
