@@ -35,7 +35,7 @@ def main(args):
                             num_workers=8,
                             pin_memory=True)
 
-    pl_model = LightningModel(model, learning_rate=0.001, datamodule=dataset)
+    pl_model = LightningModel(model, learning_rate=args.lr, datamodule=dataset)
     # pl_model.to(device)
     # pl_model.eval()
 
