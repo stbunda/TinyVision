@@ -60,6 +60,11 @@ if __name__ == "__main__":
                         dest="epochs",
                         help="Select max epochs",
                         default=100)
+    parser.add_argument("-l",
+                        "--lr",
+                        dest="lr",
+                        help="Select learning rate",
+                        default=0.001)
 
     arguments = parser.parse_args()
     print(f'arguments: {arguments}')
