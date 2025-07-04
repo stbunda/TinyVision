@@ -1,3 +1,5 @@
+import argparse
+
 import pytorch_lightning as pl
 import torch
 import torchvision.models as models
@@ -6,7 +8,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from data.pytorch_dataset import CIFAR10
 from model.LightningModel import LightningModel
 
-def main():
+def main(args):
 
     # Metadata:
     model_name = 'MobileNetV3S'
@@ -14,7 +16,7 @@ def main():
 
     logger = TensorBoardLogger("lightning_logs", name=f"{model_name}_{data_set}", default_hp_metric=False)
 
-    model = models.mobilenet_v3_small(num_classes=10, width_mult=0.5)
+    model = models.mobilenet_v3_small(num_classes=10, width_mult=args.width)
     device = torch.device('cuda' if torch.cuda.is_available() else "cpu")
 
     # Load dataset
@@ -42,9 +44,23 @@ def main():
     correct = 0
     total = 0
 
-    trainer = pl.Trainer(logger=logger, max_epochs=1000, enable_progress_bar=False)
+    trainer = pl.Trainer(logger=logger, max_epochs=args.epochs, enable_progress_bar=False)
     trainer.fit(model=pl_model, datamodule=dataset, )
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-w",
+                        "--width",
+                        dest="width",
+                        help="Select width multiplier of model",
+                        default=1.0)
+    parser.add_argument("-e",
+                        "--epochs",
+                        dest="epochs",
+                        help="Select max epochs",
+                        default=100)
+
+    arguments = parser.parse_args()
+    print(f'arguments: {arguments}')
+    main(arguments)
