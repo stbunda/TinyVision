@@ -155,13 +155,12 @@ class BaseDataset(L.LightningDataModule):
 
 class SweepData(BaseDataset):
     def __init__(self, set: str='D1', imsize: int = 128, data_dir: str = './', train_transforms=None, test_transforms=None, **kwargs):        
-        self.task = 'multiclass'
-
         train_transform_list = [
            transforms.Grayscale(),
            transforms.Resize((imsize, imsize)),
            transforms.ToTensor(),
         ] + self.custom_transforms(train_transforms)
+
 
         test_transforms_list = [
            transforms.Grayscale(),
@@ -175,6 +174,7 @@ class SweepData(BaseDataset):
                          **kwargs)
 
     def prepare_data(self):
+        self.task = 'multiclass'
         pass
 
     def setup(self, stage: str):
@@ -188,8 +188,6 @@ class SweepData(BaseDataset):
 # Specific dataset classes
 class CIFAR10(BaseDataset):
     def __init__(self, data_dir: str = './', train_transforms=None, test_transforms=None, **kwargs):
-        self.task = 'multiclass'
-
         train_transform_list = [
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
@@ -208,6 +206,8 @@ class CIFAR10(BaseDataset):
                          **kwargs)
 
     def prepare_data(self):
+        self.task = 'multiclass'
+
         td.CIFAR10(f'{self.data_dir}/train/{self.dataset_name}/', train=True, download=True)
         td.CIFAR10(f'{self.data_dir}/test/{self.dataset_name}/', train=False, download=True)
 
@@ -221,8 +221,6 @@ class CIFAR10(BaseDataset):
 
 class CIFAR100(BaseDataset):
     def __init__(self, data_dir: str = './', train_transforms=None, test_transforms=None, **kwargs):
-        self.task = 'multiclass'
-
         train_transforms = [
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
@@ -241,6 +239,8 @@ class CIFAR100(BaseDataset):
                          **kwargs)
 
     def prepare_data(self):
+        self.task = 'multiclass'
+
         td.CIFAR100(f'{self.data_dir}/train/{self.dataset_name}/', train=True, download=True)
         td.CIFAR100(f'{self.data_dir}/test/{self.dataset_name}/', train=False, download=True)
 
@@ -254,8 +254,6 @@ class CIFAR100(BaseDataset):
 
 class MNIST(BaseDataset):
     def __init__(self, data_dir: str = './', train_transforms=None, test_transforms=None, **kwargs):
-        self.task = 'multiclass'
-
         train_transforms = [
             transforms.ToTensor(),
             transforms.Normalize([0.1307], [0.3081])
@@ -269,6 +267,8 @@ class MNIST(BaseDataset):
                          **kwargs)
 
     def prepare_data(self):
+        self.task = 'multiclass'
+
         td.MNIST(f'{self.data_dir}/train/{self.dataset_name}/', train=True, download=True)
         td.MNIST(f'{self.data_dir}/test/{self.dataset_name}/', train=False, download=True)
 
@@ -282,8 +282,6 @@ class MNIST(BaseDataset):
 
 class SVHN(BaseDataset):
     def __init__(self, data_dir: str = './', train_transforms=None, test_transforms=None, **kwargs):
-        self.task = 'multiclass'
-
         train_transforms = [
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
@@ -299,6 +297,8 @@ class SVHN(BaseDataset):
                          **kwargs)
 
     def prepare_data(self):
+        self.task = 'multiclass'
+
         td.SVHN(f'{self.data_dir}/train/{self.dataset_name}/', split='train', download=True)
         td.SVHN(f'{self.data_dir}/val/{self.dataset_name}/', split='extra', download=True)
         td.SVHN(f'{self.data_dir}/test/{self.dataset_name}/', split='test', download=True)
@@ -313,8 +313,6 @@ class SVHN(BaseDataset):
 
 class ImageNet(BaseDataset):
     def __init__(self, data_dir: str = './', train_transforms=None, test_transforms=None, **kwargs):
-        self.task = 'multiclass'
-
         train_transforms = [
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
@@ -329,10 +327,12 @@ class ImageNet(BaseDataset):
         ] + self.custom_transforms(test_transforms)
 
         super().__init__('ImageNet', data_dir, transforms.Compose(train_transforms),
-                         transforms.Compose(test_transforms),
+                         transforms.Compose(test_transforms)
                          **kwargs)
 
     def prepare_data(self):
+        self.task = 'multiclass'
+
         td.ImageNet(f'{self.data_dir}/train/{self.dataset_name}/', train=True, download=True)
         td.ImageNet(f'{self.data_dir}/test/{self.dataset_name}/', train=False, download=True)
 

@@ -16,7 +16,7 @@ class LightningModel(pl.LightningModule):
 
         # Save settings and hyperparameters to the log directory
         # but skip the model parameters
-        self.save_hyperparameters(ignore=["model"])
+        # self.save_hyperparameters(ignore=["model"])
 
         self.datamodule = datamodule
 
