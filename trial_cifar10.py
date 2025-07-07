@@ -34,6 +34,7 @@ def main(args):
     if args.model.lower() == 'mobilenet_v3_small':
         model = models.__dict__[args.model.lower()](pretrained=args.pretrained, width_mult=args.width, num_classes=len(dataset.classes))
     model.to(device)
+    model_name = args.model.lower() + f'_{args.width}'
 
     opt_name = args.opt.lower()
     if opt_name == 'sgd':
@@ -55,11 +56,11 @@ def main(args):
         lr_scheduler.load_state_dict(checkpoint['lr_scheduler'])
         args.start_epoch = checkpoint['epoch'] + 1
 
-    logger = TensorBoardLogger("lightning_logs", name=f"{args.model.lower()}_{args.dataset.lower()}", default_hp_metric=False)
+    logger = TensorBoardLogger("lightning_logs", name=f"{model_name}-{args.dataset.lower()}", default_hp_metric=False)
     pl_model = LightningModel(model, learning_rate=args.lr, datamodule=dataset, optimizer=optimizer, lr_scheduler=lr_scheduler)
 
-    checkpoint_callback = ModelCheckpoint(monitor='val/accuracy',
-                                          filename=f'{args.model.lower()}_{args.dataset.lower()}'+'-{epoch}-{val_loss:.2f}-{val_acc:.2f}',
+    checkpoint_callback = ModelCheckpoint(monitor='valid_acc',
+                                          filename=f'{model_name}-{args.dataset.lower()}'+'-{epoch}-{valid_loss:.2f}-{valid_acc:.2f}',
                                           save_top_k=3)
 
     trainer = pl.Trainer(logger=logger, max_epochs=args.epochs, enable_progress_bar=False,
