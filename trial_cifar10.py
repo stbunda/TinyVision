@@ -4,70 +4,105 @@ import pytorch_lightning as pl
 import torch
 import torchvision.models as models
 from pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 from data.pytorch_dataset import CIFAR10
 from model.LightningModel import LightningModel
 
 def main(args):
-
-    # Metadata:
-    model_name = 'MobileNetV3S'
-    data_set = 'CIFAR10'
-
-    logger = TensorBoardLogger("lightning_logs", name=f"{model_name}_{data_set}", default_hp_metric=False)
-
-    model = models.mobilenet_v3_small(num_classes=10, width_mult=args.width)
     device = torch.device('cuda' if torch.cuda.is_available() else "cpu")
+    torch.backends.cudnn.benchmark = True
 
-    # Load dataset
-    dataset = CIFAR10(data_dir='data',
-                      train_val_split=0.2,
-                      # subset=100
-                      )
-
+    if args.dataset.lower() == 'cifar10':
+        dataset = CIFAR10(data_dir='data',
+                          train_val_split=0.2,
+                          # subset=100
+                          )
+    else:
+        NotImplementedError()
     dataset.setup('fit')
-    dataset.train_dataloader(batch_size=128,
+    dataset.train_dataloader(batch_size=args.batch_size,
                              shuffle=True,
-                             num_workers=8,
+                             num_workers=16,
                              drop_last=True,
                              pin_memory=True)
-    dataset.test_dataloader(batch_size=128,
-                            num_workers=8,
+    dataset.test_dataloader(batch_size=args.batch_size,
+                            num_workers=16,
                             pin_memory=True)
 
-    pl_model = LightningModel(model, learning_rate=args.lr, datamodule=dataset)
-    # pl_model.to(device)
-    # pl_model.eval()
+    print("Creating model")
+    if args.model.lower() == 'mobilenet_v3_small':
+        model = models.__dict__[args.model.lower()](pretrained=args.pretrained, width_mult=args.width)
+    model.to(device)
 
-    # Evaluate model
-    total_time = 0
-    correct = 0
-    total = 0
+    opt_name = args.opt.lower()
+    if opt_name == 'sgd':
+        optimizer = torch.optim.SGD(
+            model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
+    elif opt_name == 'rmsprop':
+        optimizer = torch.optim.RMSprop(model.parameters(), lr=args.lr, momentum=args.momentum,
+                                        weight_decay=args.weight_decay, eps=0.0316, alpha=0.9)
+    else:
+        raise RuntimeError("Invalid optimizer {}. Only SGD and RMSprop are supported.".format(args.opt))
 
-    trainer = pl.Trainer(logger=logger, max_epochs=args.epochs, enable_progress_bar=False)
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=args.lr_step_size, gamma=args.lr_gamma)
+
+    model_without_ddp = model
+    if args.resume:
+        checkpoint = torch.load(args.resume, map_location='cpu')
+        model_without_ddp.load_state_dict(checkpoint['model'])
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        lr_scheduler.load_state_dict(checkpoint['lr_scheduler'])
+        args.start_epoch = checkpoint['epoch'] + 1
+
+    logger = TensorBoardLogger("lightning_logs", name=f"{args.model.lower()}_{args.dataset.lower()}", default_hp_metric=False)
+    pl_model = LightningModel(model, learning_rate=args.lr, datamodule=dataset, optimizer=optimizer, lr_scheduler=lr_scheduler)
+
+    checkpoint_callback = ModelCheckpoint(monitor='val/accuracy',
+                                          filename=f'{args.model.lower()}_{args.dataset.lower()}'+'-{epoch}-{val_loss:.2f}-{val_acc:.2f}',
+                                          save_top_k=3)
+
+    trainer = pl.Trainer(logger=logger, max_epochs=args.epochs, enable_progress_bar=False,
+                         callbacks=[checkpoint_callback])
     trainer.fit(model=pl_model, datamodule=dataset, )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('--model', default='mobilenet_v3_small', help='model')
+    parser.add_argument('--dataset', default='cifar10', help='dataset')
+    parser.add_argument('-b', '--batch-size', default=128, type=int)
+    parser.add_argument('-e', '--epochs', default=90, type=int, metavar='N',
+                        help='number of total epochs to run')
+
+    # Optimizer
+    parser.add_argument('--opt', default='sgd', type=str, help='optimizer')
+    parser.add_argument('--lr', default=0.1, type=float, help='initial learning rate')
+    parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
+                        help='momentum')
+    parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
+                        metavar='W', help='weight decay (default: 1e-4)',
+                        dest='weight_decay')
+    parser.add_argument('--lr-step-size', default=30, type=int, help='decrease lr every step-size epochs')
+    parser.add_argument('--lr-gamma', default=0.1, type=float, help='decrease lr by a factor of lr-gamma')
+
+    parser.add_argument('--print-freq', default=10, type=int, help='print frequency')
+    parser.add_argument('--random-erase', default=0.0, type=float, help='random erasing probability (default: 0.0)')
+
     parser.add_argument("-w",
                         "--width",
                         dest="width",
                         type=float,
                         help="Select width multiplier of model",
                         default=1.0)
-    parser.add_argument("-e",
-                        "--epochs",
-                        dest="epochs",
-                        type=float,
-                        help="Select max epochs",
-                        default=100)
-    parser.add_argument("-l",
-                        "--lr",
-                        dest="lr",
-                        type=float,
-                        help="Select learning rate",
-                        default=0.001)
+
+    parser.add_argument(
+        "--pretrained",
+        dest="pretrained",
+        default=False,
+        help="Use pre-trained models from the modelzoo",
+        action="store_true",
+    )
 
     arguments = parser.parse_args()
     print(f'arguments: {arguments}')

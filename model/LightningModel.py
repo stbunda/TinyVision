@@ -1,11 +1,11 @@
 import pytorch_lightning as pl
 import torch
 import torchmetrics
-
+from tensorflow.python.layers.core import dropout
 
 # LightningModule that receives a PyTorch model as input
 class LightningModel(pl.LightningModule):
-    def __init__(self, model, learning_rate, datamodule):
+    def __init__(self, model, learning_rate, datamodule, optimizer, lr_scheduler):
         super().__init__()
 
         self.learning_rate = learning_rate
@@ -19,6 +19,8 @@ class LightningModel(pl.LightningModule):
         # self.save_hyperparameters(ignore=["model"])
 
         self.datamodule = datamodule
+        self.given_optimizer = optimizer
+        self.given_lr_scheduler = lr_scheduler
 
         # Set up attributes for computing the accuracy
         self.train_acc = torchmetrics.Accuracy(task=datamodule.task, num_classes=len(datamodule.classes))
@@ -74,5 +76,7 @@ class LightningModel(pl.LightningModule):
         self.log("test_acc", self.test_acc, on_epoch=True, on_step=False)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
-        return optimizer
+        opt = self.given_optimizer
+        scheduler = self.given_lr_scheduler
+
+        return {'optimizer': opt, 'lr_scheduler': {'scheduler': scheduler, 'interval': 'step', 'monitor': 'val_loss'}}
