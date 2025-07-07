@@ -103,6 +103,7 @@ if __name__ == "__main__":
         help="Use pre-trained models from the modelzoo",
         action="store_true",
     )
+    parser.add_argument('--resume', default='', help='resume from checkpoint')
 
     arguments = parser.parse_args()
     print(f'arguments: {arguments}')
