@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 import torch
 import torchvision.models as models
 from pytorch_lightning.loggers import TensorBoardLogger
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 
 from data.pytorch_dataset import CIFAR10
 from model.LightningModel import LightningModel
@@ -62,9 +62,10 @@ def main(args):
     checkpoint_callback = ModelCheckpoint(monitor='valid_acc',
                                           filename=f'{model_name}-{args.dataset.lower()}'+'-{epoch}-{valid_loss:.2f}-{valid_acc:.2f}',
                                           save_top_k=3)
+    lr_monitor = LearningRateMonitor(logging_interval='step')
 
     trainer = pl.Trainer(logger=logger, max_epochs=args.epochs, enable_progress_bar=False,
-                         callbacks=[checkpoint_callback])
+                         callbacks=[checkpoint_callback, lr_monitor])
     trainer.fit(model=pl_model, datamodule=dataset, )
 
 
