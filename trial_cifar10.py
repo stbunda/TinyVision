@@ -32,7 +32,7 @@ def main(args):
 
     print("Creating model")
     if args.model.lower() == 'mobilenet_v3_small':
-        model = models.__dict__[args.model.lower()](pretrained=args.pretrained, width_mult=args.width)
+        model = models.__dict__[args.model.lower()](pretrained=args.pretrained, width_mult=args.width, num_classes=len(dataset.classes))
     model.to(device)
 
     opt_name = args.opt.lower()
@@ -71,8 +71,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', default='mobilenet_v3_small', help='model')
     parser.add_argument('--dataset', default='cifar10', help='dataset')
-    parser.add_argument('-b', '--batch-size', default=128, type=int)
-    parser.add_argument('-e', '--epochs', default=90, type=int, metavar='N',
+    parser.add_argument('-b', '--batch-size', default=64, type=int)
+    parser.add_argument('-e', '--epochs', default=5, type=int, metavar='N',
                         help='number of total epochs to run')
 
     # Optimizer
