@@ -53,16 +53,19 @@ if __name__ == "__main__":
     parser.add_argument("-w",
                         "--width",
                         dest="width",
+                        type=float,
                         help="Select width multiplier of model",
                         default=1.0)
     parser.add_argument("-e",
                         "--epochs",
                         dest="epochs",
+                        type=float,
                         help="Select max epochs",
                         default=100)
     parser.add_argument("-l",
                         "--lr",
                         dest="lr",
+                        type=float,
                         help="Select learning rate",
                         default=0.001)
 
