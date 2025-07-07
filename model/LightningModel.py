@@ -79,4 +79,4 @@ class LightningModel(pl.LightningModule):
         opt = self.given_optimizer
         scheduler = self.given_lr_scheduler
 
-        return {'optimizer': opt, 'lr_scheduler': {'scheduler': scheduler, 'interval': 'step', 'monitor': 'val_loss'}}
+        return {'optimizer': opt, 'lr_scheduler': {'scheduler': scheduler, 'interval': 'epoch', 'monitor': 'val_loss'}}
