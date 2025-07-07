@@ -10,7 +10,7 @@ from data.pytorch_dataset import CIFAR10
 from model.LightningModel import LightningModel
 
 def main(args):
-    device = torch.device('cuda' if torch.cuda.is_available() else "cpu")
+    device = torch.device('cuda' if torch.cuda.is_available() and args.device == 'cuda' else "cpu")
     torch.backends.cudnn.benchmark = True
 
     if args.dataset.lower() == 'cifar10':
@@ -64,13 +64,14 @@ def main(args):
                                           save_top_k=3)
     lr_monitor = LearningRateMonitor(logging_interval='step')
 
-    trainer = pl.Trainer(logger=logger, max_epochs=args.epochs, enable_progress_bar=False,
+    trainer = pl.Trainer(accelerator='gpu' if args.device == 'cuda' else 'cpu', logger=logger, max_epochs=args.epochs, enable_progress_bar=False,
                          callbacks=[checkpoint_callback, lr_monitor])
     trainer.fit(model=pl_model, datamodule=dataset, )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('--device', default='cuda', help='device')
     parser.add_argument('--model', default='mobilenet_v3_small', help='model')
     parser.add_argument('--dataset', default='cifar10', help='dataset')
     parser.add_argument('-b', '--batch-size', default=64, type=int)
