@@ -327,7 +327,7 @@ class ImageNet(BaseDataset):
         ] + self.custom_transforms(test_transforms)
 
         super().__init__('ImageNet', data_dir, transforms.Compose(train_transform_list),
-                         transforms.Compose(test_transforms_list)
+                         transforms.Compose(test_transforms_list),
                          **kwargs)
 
     def prepare_data(self):
