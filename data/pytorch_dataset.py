@@ -79,7 +79,7 @@ class BaseDataset(L.LightningDataModule):
         if isinstance(self.train_val_split, float) or isinstance(self.train_val_split, int):
             if self.train_val_split != 0:
                 if isinstance(self.train_val_split, float):
-                    val_size = ld * self.train_val_split
+                    val_size = int(ld * self.train_val_split)
                     self.train, self.val = random_split(full_dataset, [int(ld - val_size), int(val_size)], generator=self.generator)
                 else:
                     self.train, self.val = random_split(full_dataset, [int(ld - self.train_val_split), int(self.train_val_split)], generator=self.generator)
