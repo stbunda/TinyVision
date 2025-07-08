@@ -333,12 +333,15 @@ class ImageNet(BaseDataset):
     def prepare_data(self):
         self.task = 'multiclass'
 
-        td.ImageNet(f'{self.data_dir}/train/{self.dataset_name}/', train=True, download=True)
-        td.ImageNet(f'{self.data_dir}/test/{self.dataset_name}/', train=False, download=True)
+        td.ImageNet(f'{self.data_dir}', train=True)
+        td.ImageNet(f'{self.data_dir}', train=False)
+
+        # td.ImageNet(f'{self.data_dir}/train/{self.dataset_name}/', train=True, download=True)
+        # td.ImageNet(f'{self.data_dir}/test/{self.dataset_name}/', train=False, download=True)
 
     def setup(self, stage: str):
         if stage == "fit":
-            full_dataset = td.ImageNet(f'{self.data_dir}/train/{self.dataset_name}/', train=True, transform=self.train_transforms)
+            full_dataset = td.ImageNet(f'{self.data_dir}', train=True, transform=self.train_transforms)
             self.split_train_val(full_dataset)
         elif stage == "test":
-            self.test = td.ImageNet(f'{self.data_dir}/test/{self.dataset_name}/', train=False, transform=self.test_transforms)
+            self.test = td.ImageNet(f'{self.data_dir}', train=False, transform=self.test_transforms)
