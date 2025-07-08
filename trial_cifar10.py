@@ -18,7 +18,7 @@ def main(args):
                           train_val_split=0.2,
                           # subset=100
                           )
-    elif args.datset.lower() == 'imagenet':
+    elif args.dataset.lower() == 'imagenet':
         dataset = ImageNet(data_dir=args.data_dir,
                           train_val_split=0.2,
                           # subset=100
