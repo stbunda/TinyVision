@@ -6,7 +6,7 @@ import torchvision.models as models
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 
-from data.pytorch_dataset import CIFAR10
+from data.pytorch_dataset import CIFAR10, ImageNet
 from model.LightningModel import LightningModel
 
 def main(args):
@@ -14,7 +14,12 @@ def main(args):
     torch.backends.cudnn.benchmark = True
 
     if args.dataset.lower() == 'cifar10':
-        dataset = CIFAR10(data_dir='data',
+        dataset = CIFAR10(data_dir=args.data_dir,
+                          train_val_split=0.2,
+                          # subset=100
+                          )
+    elif args.datset.lower() == 'imagenet':
+        dataset = ImageNet(data_dir=args.data_dir,
                           train_val_split=0.2,
                           # subset=100
                           )
@@ -74,6 +79,7 @@ if __name__ == "__main__":
     parser.add_argument('--device', default='cuda', help='device')
     parser.add_argument('--model', default='mobilenet_v3_small', help='model')
     parser.add_argument('--dataset', default='cifar10', help='dataset')
+    parser.add_argument('--data_dir', default='data', help='dataset directory')
     parser.add_argument('-b', '--batch-size', default=64, type=int)
     parser.add_argument('-e', '--epochs', default=5, type=int, metavar='N',
                         help='number of total epochs to run')
