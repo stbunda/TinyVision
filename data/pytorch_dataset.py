@@ -313,21 +313,21 @@ class SVHN(BaseDataset):
 
 class ImageNet(BaseDataset):
     def __init__(self, data_dir: str = './', train_transforms=None, test_transforms=None, **kwargs):
-        train_transforms = [
+        train_transform_list = [
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ] + self.custom_transforms(train_transforms)
 
-        test_transforms = [
+        test_transforms_list = [
             transforms.RandomResizedCrop(224),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ] + self.custom_transforms(test_transforms)
 
-        super().__init__('ImageNet', data_dir, transforms.Compose(train_transforms),
-                         transforms.Compose(test_transforms)
+        super().__init__('ImageNet', data_dir, transforms.Compose(train_transform_list),
+                         transforms.Compose(test_transforms_list)
                          **kwargs)
 
     def prepare_data(self):
