@@ -64,7 +64,7 @@ def main(args):
     logger = TensorBoardLogger("lightning_logs", name=f"{model_name}-{args.dataset.lower()}", default_hp_metric=False)
     pl_model = LightningModel(model, learning_rate=args.lr, datamodule=dataset, optimizer=optimizer, lr_scheduler=lr_scheduler)
 
-    checkpoint_callback = ModelCheckpoint(monitor='valid_acc',
+    checkpoint_callback = ModelCheckpoint(monitor='valid_loss',
                                           filename=f'{model_name}-{args.dataset.lower()}'+'-{epoch}-{valid_loss:.2f}-{valid_acc:.2f}',
                                           save_top_k=3)
     lr_monitor = LearningRateMonitor(logging_interval='step')
