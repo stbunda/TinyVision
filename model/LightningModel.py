@@ -44,7 +44,7 @@ class LightningModel(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss, true_labels, predicted_labels = self._shared_step(batch)
-        # self.log("train_loss", loss)
+        self.log("train_loss", loss)
 
         # Do another forward pass in .eval() mode to compute accuracy
         # while accountingfor Dropout, BatchNorm etc. behavior
@@ -60,7 +60,7 @@ class LightningModel(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         loss, true_labels, predicted_labels = self._shared_step(batch)
-        # self.log("valid_loss", loss)
+        self.log("valid_loss", loss)
         self.valid_acc(predicted_labels, true_labels)
         self.log(
             "valid_acc",
