@@ -17,10 +17,14 @@ def main(args):
     dataset = get_dataset_class(args.dataset)(data_dir=args.data_dir)
 
     dataset.setup('fit')
+    dataset.train_dataloader(batch_size=args.batch_size,
+                             shuffle=True,
+                             num_workers=16,
+                             drop_last=True,
+                             pin_memory=True)
     dataset.test_dataloader(batch_size=args.batch_size,
                             num_workers=16,
                             pin_memory=True)
-
     print('############### Creating model ###############')
     model = models.__dict__[args.model.lower()](pretrained=args.pretrained)
     model.to(device)
