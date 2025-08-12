@@ -3,6 +3,50 @@ import torch
 import torchmetrics
 from tensorflow.python.layers.core import dropout
 
+
+class LigthningModelLight(pl.LightninModule):
+    def __init__(self, model, learning_rate, datamodule, optimizer, lr_scheduler):
+        super().__init__()
+
+        # The inherited PyTorch module
+        self.model = model
+
+        self.datamodule = datamodule
+        self.valid_acc = torchmetrics.Accuracy(task=datamodule.task, num_classes=len(datamodule.classes))
+        self.test_acc = torchmetrics.Accuracy(task=datamodule.task, num_classes=len(datamodule.classes))
+
+    # Defining the forward method is only necessary
+    # if you want to use a Trainer's .predict() method (optional)
+    def forward(self, x):
+        return self.model(x)
+
+    # A common forward step to compute the loss and labels
+    # this is used for training, validation, and testing below
+    def _shared_step(self, batch):
+        features, true_labels = batch
+        logits = self(features)
+        loss = torch.nn.functional.cross_entropy(logits, true_labels)
+        predicted_labels = torch.argmax(logits, dim=1)
+
+        return loss, true_labels, predicted_labels
+
+    def validation_step(self, batch, batch_idx):
+        loss, true_labels, predicted_labels = self._shared_step(batch)
+        self.log("valid_loss", loss)
+        self.valid_acc(predicted_labels, true_labels)
+        self.log(
+            "valid_acc",
+            self.valid_acc,
+            on_epoch=True,
+            on_step=False,
+            prog_bar=True,
+        )
+
+    def test_step(self, batch, batch_idx):
+        loss, true_labels, predicted_labels = self._shared_step(batch)
+        self.test_acc(predicted_labels, true_labels)
+        self.log("test_acc", self.test_acc, on_epoch=True, on_step=False)
+
 # LightningModule that receives a PyTorch model as input
 class LightningModel(pl.LightningModule):
     def __init__(self, model, learning_rate, datamodule, optimizer, lr_scheduler):
