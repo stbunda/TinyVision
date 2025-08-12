@@ -22,7 +22,7 @@ def main(args):
                             pin_memory=True)
 
     print('############### Creating model ###############')
-    model = models.__dict__[args.model.lower()](pretrained=args.pretrained, num_classes=len(dataset.classes))
+    model = models.__dict__[args.model.lower()](pretrained=args.pretrained)
     model.to(device)
     model_name = args.model.lower() + f'_{args.width}'
 
