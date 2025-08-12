@@ -4,8 +4,8 @@ import torchmetrics
 from tensorflow.python.layers.core import dropout
 
 
-class LigthningModelLight(pl.LightninModule):
-    def __init__(self, model, learning_rate, datamodule, optimizer, lr_scheduler):
+class LightningModelLight(pl.LightningModule):
+    def __init__(self, model, datamodule):
         super().__init__()
 
         # The inherited PyTorch module
