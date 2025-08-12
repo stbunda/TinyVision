@@ -14,7 +14,7 @@ def main(args):
     torch.backends.cudnn.benchmark = True
 
     print('############### Initializing Dataset ###############')
-    dataset = get_dataset_class(args.dataset)(data_dir=args.data_dir)
+    dataset = get_dataset_class(args.dataset)(data_dir=args.data_dir, train_val_split=0.2)
 
     dataset.setup('fit')
     dataset.train_dataloader(batch_size=args.batch_size,
