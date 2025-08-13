@@ -46,7 +46,7 @@ class LightningModelLight(pl.LightningModule):
         loss, true_labels, predicted_labels = self._shared_step(batch)
         self.test_acc(predicted_labels, true_labels)
         self.log("test_acc", self.test_acc, on_epoch=True, on_step=False)
-        print("test_acc", self.test_acc)
+        # print("test_acc", self.test_acc)
 
 # LightningModule that receives a PyTorch model as input
 class LightningModel(pl.LightningModule):
