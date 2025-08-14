@@ -78,7 +78,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--pretrained",
         dest="pretrained",
-        default=False,
+        default=True,
         help="Use pre-trained models from the modelzoo",
         action="store_true",
     )

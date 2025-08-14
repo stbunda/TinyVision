@@ -321,7 +321,8 @@ class ImageNet(BaseDataset):
         ] + self.custom_transforms(train_transforms)
 
         test_transforms_list = [
-            transforms.RandomResizedCrop(224),
+            transforms.Resize(256),
+            transforms.CenterCrop([224, 224]),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ] + self.custom_transforms(test_transforms)
