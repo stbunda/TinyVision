@@ -366,6 +366,8 @@ class ImageNet(BaseDataset):
         test_transforms_list = [
             transforms.Resize(resize_size, interpolation=interpolation),
             transforms.CenterCrop(image_size),
+            transforms.Resize(256),
+            transforms.CenterCrop([224, 224]),
             transforms.ToTensor(),
             transforms.Normalize(norm_mean, norm_std)
         ]
