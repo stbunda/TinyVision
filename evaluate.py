@@ -14,7 +14,9 @@ def main(args):
     torch.backends.cudnn.benchmark = True
 
     print('############### Initializing Dataset ###############')
-    dataset = get_dataset_class(args.dataset)(data_dir=args.data_dir, train_val_split=0.2)
+
+    transform_preset = 'default' if not 'efficientnet' in args.model.lower() else args.model.lower()
+    dataset = get_dataset_class(args.dataset)(data_dir=args.data_dir, train_val_split=0.2, transform_preset=transform_preset, classes=1000)
 
     dataset.setup('fit')
     dataset.train_dataloader(batch_size=args.batch_size,
@@ -32,7 +34,7 @@ def main(args):
 
 
     logger = TensorBoardLogger("lightning_logs", name=f"{model_name}-{args.dataset.lower()}", default_hp_metric=False)
-    pl_model = LightningModelLight(model, datamodule=dataset)
+    pl_model = LightningModelLight(model, datamodule=dataset, verbose=args.verbose)
 
     checkpoint_callback = ModelCheckpoint(monitor='valid_loss',
                                           filename=f'{model_name}-{args.dataset.lower()}'+'-{epoch}-{valid_loss:.2f}-{valid_acc:.2f}',
@@ -67,6 +69,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--print-freq', default=10, type=int, help='print frequency')
     parser.add_argument('--random-erase', default=0.0, type=float, help='random erasing probability (default: 0.0)')
+    parser.add_argument('--verbose', default=0, type=int, help='how much information should be given')
 
     parser.add_argument("-w",
                         "--width",

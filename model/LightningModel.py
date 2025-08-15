@@ -5,11 +5,12 @@ from tensorflow.python.layers.core import dropout
 
 
 class LightningModelLight(pl.LightningModule):
-    def __init__(self, model, datamodule):
+    def __init__(self, model, datamodule, verbose=0):
         super().__init__()
 
         # The inherited PyTorch module
         self.model = model
+        self.verbose = verbose
 
         self.datamodule = datamodule
         self.valid_acc = torchmetrics.Accuracy(task=datamodule.task, num_classes=len(datamodule.classes))
@@ -45,7 +46,7 @@ class LightningModelLight(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         loss, true_labels, predicted_labels = self._shared_step(batch)
         self.test_acc(predicted_labels, true_labels)
-        self.log("test_acc", self.test_acc, on_epoch=True, on_step=False)
+        self.log("test_acc", self.test_acc, on_epoch=True, on_step=False, prog_bar=False if not self.verbose else True)
         print("test_acc", self.test_acc)
 
 # LightningModule that receives a PyTorch model as input

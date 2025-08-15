@@ -4,7 +4,7 @@ import copy
 from typing import Union
 import pytorch_lightning as L
 from torch.utils.data import random_split, Subset, DataLoader
-import torchvision.transforms as transforms
+import torchvision.transforms.v2 as transforms
 import torchvision.datasets as td
 from .transforms import *
 
@@ -23,7 +23,8 @@ class BaseDataset(L.LightningDataModule):
                  test_transforms=None,
                  train_val_split: Union[float, list] = 0.,
                  generator_seed: int = None,
-                 subset: int = None
+                 subset: int = None,
+                 classes: int = None,
                  ):
         super().__init__()
         self.dataset_name = dataset_name
@@ -50,7 +51,10 @@ class BaseDataset(L.LightningDataModule):
 
         self.input_tensor = None
         self.task = None
-        self.classes = None
+        if classes is None:
+            self.classes = None
+        else:
+            self.classes = list(range(classes))
         self.subset = subset
         self.prepare_data()
 
@@ -92,10 +96,10 @@ class BaseDataset(L.LightningDataModule):
 
     def train_dataloader(self, **kwargs):
         if self.val is None:
-            self.classes = self.train.classes
+            self.classes = self.train.classes if self.classes is None else self.classes
             self.input_tensor = self.train.data[0].shape
         else:
-            self.classes = self.train.dataset.classes
+            self.classes = self.train.dataset.classes if self.classes is None else self.classes
             try:
                 self.input_tensor = self.train.dataset.data[0].shape
             except:
@@ -312,23 +316,67 @@ class SVHN(BaseDataset):
 
 
 class ImageNet(BaseDataset):
-    def __init__(self, data_dir: str = './', train_transforms=None, test_transforms=None, **kwargs):
+    # Preset dictionary for different models
+    TRANSFORM_PRESETS = {
+        "default": {
+            "image_size": 224,
+            "resize_size": 256,
+            "norm_mean": (0.485, 0.456, 0.406),
+            "norm_std": (0.229, 0.224, 0.225),
+            "interpolation": transforms.InterpolationMode.BILINEAR
+        },
+        "efficientnet_v2_s": {
+            "image_size": 384,
+            "resize_size": 384,
+            "norm_mean": (0.485, 0.456, 0.406),
+            "norm_std": (0.229, 0.224, 0.225),
+            "interpolation": transforms.InterpolationMode.BILINEAR
+        },
+        # Add more presets here...
+    }
+
+    def __init__(
+        self,
+        data_dir: str = './',
+        transform_preset: str = "default",
+        image_size: int = None,
+        resize_size: int = None,
+        norm_mean: tuple = None,
+        norm_std: tuple = None,
+        interpolation: transforms.InterpolationMode = None,
+        **kwargs
+    ):
+        # Get preset (fallback to default if unknown)
+        preset = self.TRANSFORM_PRESETS.get(transform_preset, self.TRANSFORM_PRESETS["default"])
+
+        # Override preset values if explicitly passed
+        image_size = image_size or preset["image_size"]
+        resize_size = resize_size or preset["resize_size"]
+        norm_mean = norm_mean or preset["norm_mean"]
+        norm_std = norm_std or preset["norm_std"]
+        interpolation = interpolation or preset["interpolation"]
+
+        # Default transforms
         train_transform_list = [
-            transforms.RandomResizedCrop(224),
+            transforms.RandomResizedCrop(image_size),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        ] + self.custom_transforms(train_transforms)
-
+            transforms.Normalize(norm_mean, norm_std)
+        ]
         test_transforms_list = [
-            transforms.RandomResizedCrop(224),
+            transforms.Resize(resize_size, interpolation=interpolation),
+            transforms.CenterCrop(image_size),
             transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        ] + self.custom_transforms(test_transforms)
+            transforms.Normalize(norm_mean, norm_std)
+        ]
 
-        super().__init__('ImageNet', data_dir, transforms.Compose(train_transform_list),
-                         transforms.Compose(test_transforms_list),
-                         **kwargs)
+        super().__init__(
+            'ImageNet',
+            data_dir,
+            transforms.Compose(train_transform_list),
+            transforms.Compose(test_transforms_list),
+            **kwargs
+        )
 
     def prepare_data(self):
         self.task = 'multiclass'
