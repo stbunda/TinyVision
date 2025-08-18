@@ -27,10 +27,6 @@ def main(args):
                              num_workers=16,
                              drop_last=True,
                              pin_memory=True)
-    dataset.val_dataloader(batch_size=args.batch_size,
-                           shuffle=False,
-                           num_workers=16,
-                           pin_memory=True)
     
     dataset.test_dataloader(batch_size=args.batch_size,
                             num_workers=16,
