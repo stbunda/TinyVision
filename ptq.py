@@ -24,12 +24,12 @@ def main(args):
     dataset.setup('fit')
     dataset.train_dataloader(batch_size=args.batch_size,
                              shuffle=True,
-                             num_workers=16,
+                             num_workers=8,
                              drop_last=True,
                              pin_memory=True)
     
     dataset.test_dataloader(batch_size=args.batch_size,
-                            num_workers=16,
+                            num_workers=8,
                             pin_memory=True)
 
 
