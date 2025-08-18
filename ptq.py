@@ -88,7 +88,7 @@ def main(args):
     conf = PostTrainingQuantConfig(
         approach="static", backend="default", tuning_criterion=tuning_criterion, accuracy_criterion=accuracy_criterion
     )
-    q_model = fit(model=pl_model.model, conf=conf, calib_dataloader=dataset, eval_func=evaluate)
+    q_model = fit(model=pl_model.model, conf=conf, calib_dataloader=dataset.val_dataloader, eval_func=evaluate)
     q_model.save("./model/quantized/")
 
 
