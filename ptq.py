@@ -19,7 +19,7 @@ def main(args):
 
     print('############### Initializing Dataset ###############')
     transform_preset = 'default' if not 'efficientnet' in args.model.lower() else args.model.lower()
-    dataset = get_dataset_class(args.dataset)(data_dir=args.data_dir, train_val_split=0.2, transform_preset=transform_preset, classes=1000)
+    dataset = get_dataset_class(args.dataset)(data_dir=args.data_dir, train_val_split=0.02, transform_preset=transform_preset, classes=1000)
 
     dataset.setup('fit')
     dataset.train_dataloader(batch_size=args.batch_size,
