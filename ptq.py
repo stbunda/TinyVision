@@ -27,6 +27,7 @@ def main(args):
                              num_workers=8,
                              drop_last=True,
                              pin_memory=True)
+    validation = dataset.val_loader()
     
     dataset.test_dataloader(batch_size=args.batch_size,
                             num_workers=8,
@@ -68,9 +69,9 @@ def main(args):
     from neural_compressor import PostTrainingQuantConfig
     from neural_compressor import quantization
     from neural_compressor.config import TuningCriterion
-    print(type(dataset.val_dataloader))
-    print(dataset.val_dataloader.__dict__)
-    print(dir(dataset.val_dataloader))
+    print(type(validation))
+    print(validation.__dict__)
+    print(dir(validation))
 
 
     if 'efficientnet' in args.model.lower():
@@ -83,8 +84,8 @@ def main(args):
         top1 = metrics['topk']()
         q_model = quantization.fit(pl_model.model,
                                     conf,
-                                    calib_dataloader=dataset.val_dataloader,
-                                    eval_dataloader=dataset.val_dataloader,
+                                    calib_dataloader=validation,
+                                    eval_dataloader=validation,
                                     eval_metric=top1)
     
     accuracy_criterion = AccuracyCriterion(tolerable_loss=0.01)
@@ -92,7 +93,7 @@ def main(args):
     conf = PostTrainingQuantConfig(
         approach="static", backend="default", tuning_criterion=tuning_criterion, accuracy_criterion=accuracy_criterion
     )
-    q_model = fit(model=pl_model.model, conf=conf, calib_dataloader=dataset.val_dataloader, eval_func=evaluate)
+    q_model = fit(model=pl_model.model, conf=conf, calib_dataloader=validation, eval_func=evaluate)
     q_model.save("./model/quantized/")
 
 
