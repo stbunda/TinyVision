@@ -60,10 +60,6 @@ def main(args):
     print('############### Testing FP32 model ###############')
     fp32_acc = trainer.test(model=pl_model, datamodule=dataset, )
     print('Results FP32 evaluation: ', fp32_acc)
-
-    def evaluate(model):
-        accuracy = trainer.test(model=pl_model.model, datamodule=dataset, )
-        return accuracy
     
     print('############### Quantizing model ###############')
     from neural_compressor import PostTrainingQuantConfig
@@ -93,7 +89,9 @@ def main(args):
     conf = PostTrainingQuantConfig(
         approach="static", backend="default", tuning_criterion=tuning_criterion, accuracy_criterion=accuracy_criterion
     )
-    q_model = fit(model=pl_model.model, conf=conf, calib_dataloader=validation, eval_func=evaluate)
+    metrics = METRICS('pytorch')
+    top1 = metrics['topk']()
+    q_model = fit(model=pl_model.model, conf=conf, calib_dataloader=validation, eval_func=top1)
     q_model.save("./model/quantized/")
 
 
