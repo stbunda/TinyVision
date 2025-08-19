@@ -27,7 +27,7 @@ def main(args):
                              num_workers=8,
                              drop_last=True,
                              pin_memory=True)
-    validation = dataset.val_loader()
+    validation = dataset.val_dataloader()
     
     dataset.test_dataloader(batch_size=args.batch_size,
                             num_workers=8,
