@@ -10,7 +10,8 @@ from data import get_dataset_class
 from model.LightningModel import LightningModel, LightningModelLight
 
 from neural_compressor.config import PostTrainingQuantConfig, TuningCriterion, AccuracyCriterion
-from neural_compressor.quantization import fit
+from neural_compressor import quantization
+from neural_compressor.metric import METRICS
 
 
 def main(args):
@@ -29,9 +30,9 @@ def main(args):
                              pin_memory=True)
     validation = dataset.val_dataloader()
     
-    dataset.test_dataloader(batch_size=args.batch_size,
-                            num_workers=8,
-                            pin_memory=True)
+    testset = dataset.test_dataloader(batch_size=args.batch_size,
+                                      num_workers=8,
+                                      pin_memory=True)
 
 
 
@@ -52,49 +53,31 @@ def main(args):
 
     trainer = pl.Trainer(accelerator='gpu' if args.device == 'cuda' else 'cpu', logger=logger, max_epochs=args.epochs, enable_progress_bar=False,
                          callbacks=[checkpoint_callback, lr_monitor])
-    
-
-
-
 
     print('############### Testing FP32 model ###############')
     fp32_acc = trainer.test(model=pl_model, datamodule=dataset, )
-    print('Results FP32 evaluation: ', fp32_acc)
+    print('Results FP32 evaluation: ', fp32_acc[0])
     
     print('############### Quantizing model ###############')
-    from neural_compressor import PostTrainingQuantConfig
-    from neural_compressor import quantization
-    from neural_compressor.config import TuningCriterion
-    print(type(validation))
-    print(validation.__dict__)
-    print(dir(validation))
-
-
-    if 'efficientnet' in args.model.lower():
-        # To reduce tuning time and get the result faster, the efficient net series model use the MSE_V2 strategy by default.
-        
-        tuning_criterion = TuningCriterion(strategy="mse_v2")
-        conf = PostTrainingQuantConfig(quant_level=1, tuning_criterion=tuning_criterion)
-        from neural_compressor.metric import METRICS
-        metrics = METRICS('pytorch')
-        top1 = metrics['topk']()
-        q_model = quantization.fit(pl_model.model,
-                                    conf,
-                                    calib_dataloader=validation,
-                                    eval_dataloader=validation,
-                                    eval_metric=top1)
-    
-    accuracy_criterion = AccuracyCriterion(tolerable_loss=0.01)
-    tuning_criterion = TuningCriterion(max_trials=600)
-    conf = PostTrainingQuantConfig(
-        approach="static", backend="default", tuning_criterion=tuning_criterion, accuracy_criterion=accuracy_criterion
-    )
     metrics = METRICS('pytorch')
     top1 = metrics['topk']()
-    q_model = fit(model=pl_model.model, conf=conf, calib_dataloader=validation, eval_func=top1)
-    q_model.save("./model/quantized/")
 
+    accuracy_criterion = AccuracyCriterion(tolerable_loss=0.01)
+    tuning_criterion = TuningCriterion(strategy="mse_v2", max_trials=100)
+    conf = PostTrainingQuantConfig(
+        approach="static", 
+        backend="default", 
+        tuning_criterion=tuning_criterion, 
+        accuracy_criterion=accuracy_criterion
+    )
 
+    q_model = quantization.fit(model=pl_model.model, 
+                               conf=conf, 
+                               calib_dataloader=validation, 
+                               eval_dataloader=testset, 
+                               eval_func=top1)
+    
+    q_model.save(f"./model/quantized/quantized_{args.model.lower()}")
 
 
 if __name__ == "__main__":
