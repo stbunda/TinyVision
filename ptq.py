@@ -63,7 +63,7 @@ def main(args):
     top1 = metrics['topk']()
 
     accuracy_criterion = AccuracyCriterion(tolerable_loss=0.01)
-    tuning_criterion = TuningCriterion(strategy="mse_v2", max_trials=100)
+    tuning_criterion = TuningCriterion(strategy="mse_v2", max_trials=500)
     conf = PostTrainingQuantConfig(
         approach="static", 
         backend="default", 
