@@ -76,7 +76,8 @@ def main(args):
                                conf=conf, 
                                calib_dataloader=validation, 
                                eval_dataloader=testset, 
-                               eval_func=top1)
+                            #    eval_func=top1
+                               )
     
     q_model.save(f"./model/quantized/quantized_{args.model.lower()}")
 
